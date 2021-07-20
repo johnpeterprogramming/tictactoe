@@ -66,7 +66,7 @@ def check_win(board):
 def minimax(brd, depth, isMaximizing):
     eval = check_win(brd)
     if eval:
-        return score_index[eval] #* depth
+        return score_index[eval] * 1/depth
 
     if isMaximizing:
         best_score = -100
@@ -107,9 +107,9 @@ def bestMove():
             if board[i][j] == '': #spot is available
                 board[i][j] = ai
                 if first == 'O':
-                    score = minimax(board, 0, False)
+                    score = minimax(board, 1, False)
                 else:
-                    score = minimax(board, 0, True)
+                    score = minimax(board, 1, True)
 
                 # print(f"score: {score}, row:{i}, col:{j}")
                 board[i][j] = ''
