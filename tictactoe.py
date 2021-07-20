@@ -1,21 +1,46 @@
 board = [
-    [' ', ' ', ' '],
-    [' ', ' ', ' '],
-    [' ', ' ', ' ']
+    ['', '', ''],
+    ['', '', ''],
+    ['', '', '']
 ]
 
 def print_board():
+    count = 1
     for i in range(3):
-        print(f"{board[i][0]} | {board[i][1]} | {board[i][2]}")
+        line = str()
+        for j in range(3):
+            if board[i][j] == '':
+                line += str(count)
+            else:
+                line += str(board[i][j])
+            if j < 2:
+                line += ' | '
+
+            count += 1
+
+        print(line)
         if i < 2:
             print("---------")
 
 players = ("X", "O")
-current_index = 0
+player = 'X'
+ai = 'O'
 
-def check_win():
-    winner = 0
+score_index = {
+    player : 1,
+    ai : -1,
+    'tie' : 0
+}
+
+def check_win(board):
+    winner = None
+    draw = True
     for i in range(3):
+        for j in range(3):
+            if board[i][j] == '':
+                draw = False
+                break
+
         #horizontal
         if board[i][0] == board[i][1] == board[i][2]:
             winner = board[i][0]
@@ -25,6 +50,7 @@ def check_win():
             winner = board[0][i]
             return winner
 
+
     #diagonal
     if board[0][0] == board[1][1] == board[2][2]:
         winner = board[1][1]
@@ -33,36 +59,81 @@ def check_win():
         winner = board[1][1]
         return winner
 
-move = 1
+    if draw:
+        return 'tie'
 
-while True:
+def minimax(board, depth, isMaximizing):
+    eval = check_win(board)
+    if eval:
+        return score_index[eval]
+    
+    if isMaximizing:
+        best_score = float('-inf')
+        for i in range(3):
+            for j in range(3):
+                if board[i][j] == '':
+                    board[i][j] = ai
+                    score = minimax(board, depth+1, False)
+                    board[i][j] = ''
+                    best_score = max(score, best_score)
+        return best_score
+    else:
+        min_score = float('inf')
+        for i in range(3):
+            for j in range(3):
+                if board[i][j] == '':
+                    board[i][j] = player
+                    score = minimax(board, depth+1, True)
+                    board[i][j] = ''
+                    min_score = min(score, min_score)
+        return min_score
+
+for _ in range(9):
     print_board()
-    print(f"Player {players[current_index]}'s move")
-    can_move = False
-    while not can_move:
-        move_row = int(input("What Row? "))
-        move_column = int(input("What Column? "))
-        if board[move_row-1][move_column-1] == ' ':
-            board[move_row-1][move_column-1] = players[current_index]
-            current_index = (current_index + 1) % 2
+    while True:
+        
+        move = int(input("> "))
+        move -= 1
+
+        row = move // 3
+        column = move % 3
+
+        if board[row][column] == '':
+            board[row][column] = player
             break
+
         print("Can't make move there")
-    if check_win() == 'X':
-        print("-------------")
-        print("Player X won!")
-        print("-------------")
+
+    winner = check_win(board)
+    if winner:
         break
-    elif check_win() == 'O':
-        print("-------------")
-        print("Player O won!")
-        print("-------------")
+
+    best_score = float('inf')
+
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] == '': #spot is available
+                board[i][j] = ai
+                score = minimax(board, 0, False)
+                board[i][j] = ''
+                if score < best_score:
+                    best_score = score
+                    move = (i, j)
+
+    board[move[0]][move[1]] = ai
+
+    winner = check_win(board)
+    if winner:
         break
-    move += 1
-    if move == 10:
-        print("-------------")
-        print("DRAW, YOU BOTH SUCK")
-        print("-------------")
-        break
+
+if winner != 'tie':
+    print("-------------")
+    print(f"Player {winner} won!")
+    print("-------------")
+else:
+    print("-------------")
+    print("DRAW ")
+    print("-------------")
 
     print()
 print_board()
